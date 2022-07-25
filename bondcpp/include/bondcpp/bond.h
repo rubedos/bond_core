@@ -92,6 +92,13 @@ public:
   void setHeartbeatTimeout(double dur);
   double getHeartbeatPeriod() const { return heartbeat_period_; }
   void setHeartbeatPeriod(double dur);
+  
+  bool getManualPulsing() const { return manual_pulsing_; }
+  void setManualPulsing(bool manual_pulsing);
+
+  /** \brief Sends pulse to the sister node. Only works if setManualPulsing(true) has been called.
+   */
+  void pulse();
 
   void setCallbackQueue(ros::CallbackQueueInterface *queue);
 
@@ -171,6 +178,8 @@ private:
   double heartbeat_timeout_;
   double disconnect_timeout_;
   double heartbeat_period_;
+
+  bool manual_pulsing_;
 
   Timeout connect_timer_;
   Timeout heartbeat_timer_;

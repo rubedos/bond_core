@@ -160,6 +160,16 @@ void Bond::setHeartbeatPeriod(double dur)
   heartbeat_period_ = dur;
 }
 
+void Bond::setManualPulsing(bool manual_pulsing)
+{
+  if (started_) {
+    ROS_ERROR("Cannot switch to manual pulsing after calling start()");
+    return;
+  }
+  manual_pulsing_ = manual_pulsing;
+}
+
+
 void Bond::setCallbackQueue(ros::CallbackQueueInterface *queue)
 {
   if (started_) {
@@ -344,11 +354,27 @@ void Bond::doPublishing(const ros::SteadyTimerEvent &)
   boost::mutex::scoped_lock lock(mutex_);
   if (sm_.getState().getId() == SM::WaitingForSister.getId() ||
       sm_.getState().getId() == SM::Alive.getId()) {
-    publishStatus(true);
+    if (!manual_pulsing_) publishStatus(true);
   } else if (sm_.getState().getId() == SM::AwaitSisterDeath.getId()) {
     publishStatus(false);
   } else {
     publishingTimer_.stop();
+  }
+}
+
+void Bond::pulse()
+{
+  if (manual_pulsing_)
+  {
+    boost::mutex::scoped_lock lock(mutex_);
+    if (sm_.getState().getId() == SM::WaitingForSister.getId() ||
+        sm_.getState().getId() == SM::Alive.getId()) {
+      publishStatus(true);
+    } else if (sm_.getState().getId() == SM::AwaitSisterDeath.getId()) {
+      publishStatus(false);
+    } else {
+      publishingTimer_.stop();
+    }
   }
 }
 

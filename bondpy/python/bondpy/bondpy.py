@@ -119,6 +119,8 @@ class Bond(object):
         self.disconnect_timeout = Constants.DEFAULT_DISCONNECT_TIMEOUT
         self.heartbeat_period = Constants.DEFAULT_HEARTBEAT_PERIOD
 
+        self.manual_pulsing_ = False
+
         self.sub = None
 
         # queue_size 1 : avoid having a client receive backed up, potentially
@@ -159,6 +161,15 @@ class Bond(object):
         assert not self.__started
         self.__heartbeat_period = as_float_duration(per)
     heartbeat_period = property(get_heartbeat_period, set_heartbeat_period)
+
+    def get_manual_pulsing(self):
+        return self.manual_pulsing_
+
+    def set_manual_pulsing(self, manual_pulsing):
+        assert not self.__started
+        self.manual_pulsing_ = manual_pulsing
+
+    manual_pulsing = property(get_manual_pulsing, set_manual_pulsing)
 
     ## \brief Starts the bond and connects to the sister process.
     def start(self):
@@ -247,16 +258,24 @@ class Bond(object):
         self.pub.publish(msg)
 
     def _publishing_thread(self):
+        self.do_pulse(not self.manual_pulsing)
+
+    def pulse(self):
+        self.do_pulse(True)
+
+    def do_pulse(self, publish_alive):
         with self.lock:
             # Publishing ALIVE
             while not self.is_shutdown and self.sm.getState().getName() in ['SM.WaitingForSister', 'SM.Alive']:
-                self._publish(True)
+                if publish_alive:
+                    self._publish(True)
                 self.condition.wait(self.heartbeat_period)
 
             # Publishing DEAD
             while not self.is_shutdown and self.sm.getState().getName() == 'SM.AwaitSisterDeath':
                 self._publish(False)
                 self.condition.wait(Constants.DEAD_PUBLISH_PERIOD)
+
 
     def _flush_pending_callbacks(self):
         callbacks = []
