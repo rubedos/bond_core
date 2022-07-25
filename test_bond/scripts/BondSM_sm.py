@@ -73,6 +73,17 @@ class SM_WaitingForSister(SM_Default):
         finally:
             fsm.setState(SM.Alive)
             fsm.getState().Entry(fsm)
+            
+    def SisterDead(self, fsm):
+        ctxt = fsm.getOwner()
+        fsm.getState().Exit(fsm)
+        fsm.clearState()
+        try:
+            ctxt.SisterDied()
+            ctxt.Death()
+        finally:
+            fsm.setState(SM.Dead)
+            fsm.getState().Entry(fsm)
 
 
 class SM_Alive(SM_Default):
@@ -152,7 +163,7 @@ class SM_AwaitSisterDeath(SM_Default):
             fsm.getState().Entry(fsm)
 
 
-class SM_Dead(SM_Default):
+class SM_SisterDead(SM_Default):
 
     def ConnectTimeout(self, fsm):
         fsm.getState().Exit(fsm)
@@ -185,7 +196,7 @@ class SM(object):
     WaitingForSister = SM_WaitingForSister('SM.WaitingForSister', 0)
     Alive = SM_Alive('SM.Alive', 1)
     AwaitSisterDeath = SM_AwaitSisterDeath('SM.AwaitSisterDeath', 2)
-    Dead = SM_Dead('SM.SisterDead', 3)
+    Dead = SM_SisterDead('SM.SisterDead', 3)
     Default = SM_Default('SM.Default', -1)
 
 
