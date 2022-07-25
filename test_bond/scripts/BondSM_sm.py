@@ -185,7 +185,7 @@ class SM(object):
     WaitingForSister = SM_WaitingForSister('SM.WaitingForSister', 0)
     Alive = SM_Alive('SM.Alive', 1)
     AwaitSisterDeath = SM_AwaitSisterDeath('SM.AwaitSisterDeath', 2)
-    Dead = SM_Dead('SisterDead', 3)
+    Dead = SM_Dead('SM.SisterDead', 3)
     Default = SM_Default('SM.Default', -1)
 
 
