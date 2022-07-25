@@ -73,7 +73,7 @@ class SM_WaitingForSister(SM_Default):
         finally:
             fsm.setState(SM.Alive)
             fsm.getState().Entry(fsm)
-            
+
     def SisterDead(self, fsm):
         ctxt = fsm.getOwner()
         fsm.getState().Exit(fsm)
@@ -189,6 +189,13 @@ class SM_SisterDead(SM_Default):
         fsm.getState().Exit(fsm)
         fsm.setState(SM.Dead)
         fsm.getState().Entry(fsm)
+        
+    def SisterAlive(self, fsm):
+        raise RuntimeError('Cannot ressurect sister once it dies. Wrong transition SisterDead->SisterAlive')
+        # fsm.getState().Exit(fsm)
+        # fsm.setState(SM.AwaitSisterDeath)
+        # fsm.getState().Entry(fsm)
+
 
 
 class SM(object):
