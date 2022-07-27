@@ -147,6 +147,14 @@ public:
    */
   bool isBroken();
 
+  /** \brief Indicates if the bond is broken
+   * \return true iff the bond has been broken.
+   */
+  bool isSisterDead()
+  {
+    return sisterDiedFirst_;
+  }
+
   /** \brief Breaks the bond, notifying the other process.
    */
   void breakBond();

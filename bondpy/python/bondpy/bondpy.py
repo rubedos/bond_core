@@ -266,7 +266,11 @@ class Bond(object):
     def do_pulse(self, publish_alive):
         with self.lock:
             # Publishing ALIVE
-            while not self.is_shutdown and self.sm.getState().getName() in ['SM.WaitingForSister', 'SM.Alive']:
+            while not self.is_shutdown and self.sm.getState().getName() in ['SM.WaitingForSister']:
+                self._publish(True)
+                self.condition.wait(self.heartbeat_period)
+
+            while not self.is_shutdown and self.sm.getState().getName() in ['SM.Alive']:
                 if publish_alive:
                     self._publish(True)
                 self.condition.wait(self.heartbeat_period)

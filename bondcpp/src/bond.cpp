@@ -335,6 +335,11 @@ void Bond::bondStatusCB(const bond::Status::ConstPtr &msg)
       }
 
       if (msg->active) {
+        if (manual_pulsing_ && sm_.getState().getId() != SM::Alive.getId()) 
+        {
+          publishStatus(true); // Send at least once, to let the sister know the bond has been formed
+          heartbeat_timer_.reset();
+        }
         sm_.SisterAlive();
       } else {
         sm_.SisterDead();
@@ -352,14 +357,17 @@ void Bond::bondStatusCB(const bond::Status::ConstPtr &msg)
 void Bond::doPublishing(const ros::SteadyTimerEvent &)
 {
   boost::mutex::scoped_lock lock(mutex_);
-  if (sm_.getState().getId() == SM::WaitingForSister.getId() ||
-      sm_.getState().getId() == SM::Alive.getId()) {
-    if (!manual_pulsing_) publishStatus(true);
+  if (sm_.getState().getId() == SM::WaitingForSister.getId()){
+    publishStatus(true);
+  } else if (sm_.getState().getId() == SM::Alive.getId()) {
+    if (!manual_pulsing_) 
+      publishStatus(true);
   } else if (sm_.getState().getId() == SM::AwaitSisterDeath.getId()) {
     publishStatus(false);
   } else {
     publishingTimer_.stop();
   }
+
 }
 
 void Bond::pulse()
